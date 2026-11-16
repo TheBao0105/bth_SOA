@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản lý bán hàng – SOA</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◆</span>
+      <span>Quản lý bán hàng <small>SOA · TH2–TH4</small></span>
+    </div>
+    <div class="services" id="services" title="Trạng thái các service">
+      <span class="svc" data-svc="auth"><i></i>Auth :<b data-port="auth"></b></span>
+      <span class="svc" data-svc="product"><i></i>Product :<b data-port="product"></b></span>
+      <span class="svc" data-svc="order"><i></i>Order :<b data-port="order"></b></span>
+    </div>
+    <div class="user" id="userBox" hidden>
+      <span id="userName"></span>
+      <button class="btn ghost sm" id="logoutBtn">Đăng xuất</button>
+    </div>
+  </header>
+
+  <!-- ============ ĐĂNG NHẬP / ĐĂNG KÝ (TH2) ============ -->
+  <main id="authView" class="auth-wrap" hidden>
+    <div class="card auth-card">
+      <div class="tabs small">
+        <button class="tab active" data-auth-tab="login">Đăng nhập</button>
+        <button class="tab" data-auth-tab="register">Đăng ký</button>
+      </div>
+
+      <form id="loginForm" class="form">
+        <label>Tên đăng nhập hoặc email<input name="username" required autocomplete="username"></label>
+        <label>Mật khẩu<input name="password" type="password" required autocomplete="current-password"></label>
+        <button class="btn primary block" type="submit">Đăng nhập</button>
+      </form>
+
+      <form id="registerForm" class="form" hidden>
+        <label>Tên đăng nhập<input name="username" required autocomplete="username"></label>
+        <label>Email<input name="email" type="email" required autocomplete="email"></label>
+        <label>Mật khẩu (tối thiểu 6 ký tự)<input name="password" type="password" minlength="6" required autocomplete="new-password"></label>
+        <button class="btn primary block" type="submit">Tạo tài khoản</button>
+      </form>
+      <p class="muted center">Xác thực qua Auth Service (TH2)</p>
+    </div>
+  </main>
+
+  <!-- ============ ỨNG DỤNG ============ -->
+  <main id="appView" hidden>
+    <nav class="tabs main-tabs">
+      <button class="tab active" data-tab="products">Sản phẩm</button>
+      <button class="tab" data-tab="newOrder">Tạo đơn hàng</button>
+      <button class="tab" data-tab="orders">Đơn hàng</button>
+    </nav>
+
+    <!-- Sản phẩm (TH3) -->
+    <section id="tab-products" class="panel">
+      <div class="toolbar">
+        <input id="productSearch" type="search" placeholder="Tìm theo tên sản phẩm…">
+        <button class="btn primary" id="addProductBtn">+ Thêm sản phẩm</button>
+      </div>
+      <div class="card table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Tên sản phẩm</th><th class="desc-col">Mô tả</th><th class="num">Giá</th><th class="num">Tồn kho</th><th></th></tr></thead>
+          <tbody id="productRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tạo đơn hàng (TH4) -->
+    <section id="tab-newOrder" class="panel" hidden>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Chọn sản phẩm</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Sản phẩm</th><th class="num">Giá</th><th class="num">Còn</th><th class="num">SL</th><th></th></tr></thead>
+              <tbody id="pickRows"></tbody>
+            </table>
+          </div>
+        </div>
+        <form class="card form" id="orderForm">
+          <h3>Thông tin đơn hàng</h3>
+          <label>Tên khách hàng<input name="customer_name" required></label>
+          <label>Email khách hàng<input name="customer_email" type="email" required></label>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Sản phẩm</th><th class="num">SL</th><th class="num">Thành tiền</th><th></th></tr></thead>
+              <tbody id="cartRows"></tbody>
+            </table>
+          </div>
+          <div class="total">Tổng cộng: <b id="cartTotal">0 ₫</b></div>
+          <button class="btn primary block" type="submit">Đặt hàng</button>
+          <p class="muted">Order Service sẽ kiểm tra tồn kho với Product Service trước khi tạo đơn.</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Danh sách đơn hàng (TH4) -->
+    <section id="tab-orders" class="panel" hidden>
+      <div class="toolbar">
+        <select id="statusFilter">
+          <option value="">Tất cả trạng thái</option>
+          <option value="pending">Chờ xử lý</option>
+          <option value="completed">Hoàn thành</option>
+          <option value="cancelled">Đã hủy</option>
+        </select>
+        <button class="btn ghost" id="reloadOrdersBtn">↻ Tải lại</button>
+      </div>
+      <div class="card table-wrap">
+        <table>
+          <thead><tr><th>Mã</th><th>Khách hàng</th><th>Email</th><th class="num">Số mặt hàng</th><th class="num">Tổng tiền</th><th>Trạng thái</th><th>Ngày tạo</th><th></th></tr></thead>
+          <tbody id="orderRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: thêm / sửa sản phẩm -->
+  <dialog id="productDialog">
+    <form method="dialog" class="form" id="productForm">
+      <h3 id="productDialogTitle">Thêm sản phẩm</h3>
+      <label>Tên sản phẩm<input name="name" required></label>
+      <label>Mô tả<textarea name="description" rows="2"></textarea></label>
+      <div class="row">
+        <label>Giá (₫)<input name="price" type="number" min="0" step="0.01" required></label>
+        <label>Tồn kho<input name="quantity" type="number" min="0" step="1" required></label>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" value="cancel" formnovalidate>Hủy</button>
+        <button class="btn primary" value="save">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: chi tiết đơn hàng -->
+  <dialog id="orderDialog" class="wide">
+    <div class="dialog-head">
+      <h3 id="orderTitle"></h3>
+      <button class="btn ghost sm" id="closeOrderBtn" aria-label="Đóng">✕</button>
+    </div>
+    <div id="orderInfo" class="info-grid"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Mã SP</th><th>Sản phẩm</th><th class="num">Đơn giá</th><th class="num">SL</th><th class="num">Thành tiền</th><th></th></tr></thead>
+        <tbody id="itemRows"></tbody>
+      </table>
+    </div>
+    <form id="addItemForm" class="inline-form">
+      <select name="product_id" id="addItemProduct" required></select>
+      <input name="quantity" type="number" min="1" value="1" required>
+      <button class="btn" type="submit">+ Thêm mặt hàng</button>
+    </form>
+    <div class="actions" id="orderActions"></div>
+  </dialog>
+
+
+  <script src="/config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

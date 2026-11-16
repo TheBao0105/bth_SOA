@@ -1,0 +1,31 @@
+{
+  "name": "soa-th2-th3-th4",
+  "version": "1.0.0",
+  "description": "SOA: Auth Service (TH2), Product Service (TH3), Order Service (TH4) trong một project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "start:backend": "node index.js backend",
+    "start:frontend": "node index.js frontend",
+    "start:auth": "node index.js auth",
+    "start:product": "node index.js product",
+    "start:order": "node index.js order",
+    "test": "node backend/test/api-test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.11.5",
+    "sequelize": "^6.37.5"
+  },
+  "optionalDependencies": {
+    "sqlite3": "^5.1.7"
+  },
+  "allowScripts": {
+    "sqlite3@5.1.7": true
+  }
+}
